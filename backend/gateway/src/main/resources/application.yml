@@ -1,0 +1,42 @@
+server:
+  port: 8080
+jwt:
+  secret: ${JWT_SECRET:secret123}
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - RemoveResponseHeader=Server
+        - AddResponseHeader=X-Frame-Options,SAMEORIGIN
+        - AddResponseHeader=X-Content-Type-Options,nosniff
+        - AddResponseHeader=Referrer-Policy,no-referrer
+        - AddResponseHeader=Content-Security-Policy,"default-src 'self'"
+      routes:
+        - id: auth
+          uri: http://auth-service:8090
+          predicates:
+            - Path=/auth/login
+        - id: users
+          uri: http://users-service:8081
+          predicates:
+            - Path=/users/**
+          filters:
+            - CircuitBreaker=name=usersCB,fallbackUri=forward:/fallback/users
+        - id: tasks
+          uri: http://tasks-service:8082
+          predicates:
+            - Path=/tasks/**
+          filters:
+            - CircuitBreaker=name=tasksCB,fallbackUri=forward:/fallback/tasks
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins: "http://localhost:3003"
+            allowedMethods: "GET,POST,PATCH,DELETE,OPTIONS"
+            allowedHeaders: "Authorization,Content-Type"
+            allowCredentials: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

@@ -1,0 +1,154 @@
+version: "3.9"
+services:
+  mongo-users:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_users_data:/data/db
+    networks: [appnet]
+
+  users-service:
+    build:
+      context: ./backend/users-service
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-users:27017/usersdb
+    depends_on:
+      mongo-users:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    networks: [appnet]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks: [appnet]
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+    environment:
+      - JWT_SECRET=supersecret123
+      - JWT_EXPIRES_SECONDS=7200
+      - USERS_SERVICE_URL=http://users-service:8081
+    ports:
+      - "8090:8090"
+    networks: [appnet]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8090/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: ./backend/gateway
+    environment:
+      - JWT_SECRET=supersecret123
+    depends_on:
+      users-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    ports:
+      - "8085:8080"
+    networks: [appnet]
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on: [gateway]
+    ports:
+      - "3003:80"
+    networks: [appnet]
+
+  mongo-tasks:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_tasks_data:/data/db
+    networks: [appnet]
+
+  tasks-service:
+    build:
+      context: ./backend/tasks-service
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-tasks:27017/tasksdb
+    depends_on:
+      mongo-tasks:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    networks: [appnet]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks: [appnet]
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks: [appnet]
+
+  notifications-service:
+    build:
+      context: ./backend/notifications-service
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - USERS_SERVICE_URL=http://users-service:8081
+      - SPRING_MAIL_HOST=mailhog
+      - SPRING_MAIL_PORT=1025
+      - SPRING_MAIL_USERNAME=
+      - SPRING_MAIL_PASSWORD=
+    depends_on:
+      rabbitmq:
+        condition: service_started
+    networks: [appnet]
+
+  prometheus:
+    image: prom/prometheus:latest
+    command: --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [appnet]
+    depends_on:
+      - gateway
+      - users-service
+      - tasks-service
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports:
+      - "3000:3000"
+    networks: [appnet]
+    depends_on:
+      - prometheus
+networks:
+  appnet: { driver: bridge }
+
+volumes:
+  mongo_users_data:
+  mongo_tasks_data:
