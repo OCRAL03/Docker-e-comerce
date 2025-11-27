@@ -18,15 +18,32 @@ services:
       context: ./backend/users-service
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo-users:27017/usersdb
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_RABBITMQ_HOST=rabbitmq
     depends_on:
       mongo-users:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "8081:8081"
     networks: [appnet]
 
   redis:
     image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     ports:
       - "6379:6379"
     networks: [appnet]
@@ -57,6 +74,13 @@ services:
         condition: service_started
       auth-service:
         condition: service_started
+      tasks-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "8085:8080"
     networks: [appnet]
@@ -87,15 +111,28 @@ services:
       context: ./backend/tasks-service
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo-tasks:27017/tasksdb
+      - SPRING_RABBITMQ_HOST=rabbitmq
     depends_on:
       mongo-tasks:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "8082:8082"
     networks: [appnet]
 
   rabbitmq:
     image: rabbitmq:3-management
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -123,7 +160,7 @@ services:
       - SPRING_MAIL_PASSWORD=
     depends_on:
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks: [appnet]
 
   prometheus:

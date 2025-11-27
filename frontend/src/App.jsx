@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './styles.css';
 import Login from './components/Login';
+import Register from './pages/Register.jsx';
 import Users from './components/Users';
 import Tasks from './components/Tasks';
 import { get, logout as apiLogout, setToken as apiSetToken } from './lib/api';
@@ -33,17 +34,25 @@ export default function App() {
   return (
     <div className="app">
       <h1 className="sr-only">Proyecto</h1>
-      <Layout headers={lastHeaders}>
-        <div className="flex justify-end mb-4">
-          {token && <button onClick={logout} className="px-3 py-2 bg-slate-900 text-white rounded">Logout</button>}
-        </div>
+      {!token ? (
         <Routes>
-          <Route path="/users" element={token ? (<Users users={users} onChanged={load} source={usersSource} />) : (<Login onLogin={onLogin} />)} />
-          <Route path="/tasks" element={token ? (<Tasks users={users} tasks={tasks} onChanged={load} source={tasksSource} />) : (<Login onLogin={onLogin} />)} />
-          <Route path="/monitor" element={<Monitor />} />
-          <Route path="*" element={<Navigate to="/users" />} />
+          <Route path="/login" element={<Login onLogin={onLogin} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
-      </Layout>
+      ) : (
+        <Layout headers={lastHeaders}>
+          <div className="flex justify-end mb-4">
+            <button onClick={logout} className="px-3 py-2 bg-slate-900 text-white rounded">Logout</button>
+          </div>
+          <Routes>
+            <Route path="/users" element={<Users users={users} onChanged={load} source={usersSource} />} />
+            <Route path="/tasks" element={<Tasks users={users} tasks={tasks} onChanged={load} source={tasksSource} />} />
+            <Route path="/monitor" element={<Monitor />} />
+            <Route path="*" element={<Navigate to="/users" />} />
+          </Routes>
+        </Layout>
+      )}
     </div>
   );
 }

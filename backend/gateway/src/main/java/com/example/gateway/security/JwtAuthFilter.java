@@ -20,7 +20,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
   @Value("${jwt.secret:secret123}") private String secret;
   @Value("${users.service.url:http://users-service:8081}") private String usersUrl;
   private final TokenBlacklist blacklist;
-  private final List<String> publicPrefixes = List.of("/auth/", "/actuator/");
+  private final List<String> publicPrefixes = List.of("/auth/", "/actuator/", "/register");
   private final WebClient webClient = WebClient.builder().build();
 
   public JwtAuthFilter(TokenBlacklist blacklist) { this.blacklist = blacklist; }
@@ -45,7 +45,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
           .bodyToMono(String.class)
           .block();
         if (body != null && !body.isBlank()) {
-          var node = new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
+          com.fasterxml.jackson.databind.JsonNode node = new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
           if (node.has("id")) userId = node.get("id").asText();
         }
       } catch (Exception ignore) { userId = null; }

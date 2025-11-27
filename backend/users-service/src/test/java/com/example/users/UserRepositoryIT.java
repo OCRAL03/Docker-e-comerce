@@ -29,10 +29,10 @@ class UserRepositoryIT {
 
   @Test
   void savesAndFindsByEmail() {
-    var u = new User(); u.setName("Ana"); u.setEmail("ana@example.com");
-    var saved = repo.save(u);
+    User u = new User(); u.setName("Ana"); u.setEmail("ana@example.com");
+    User saved = repo.save(u);
     assertThat(saved.getId()).isNotBlank();
-    var found = repo.findByEmail("ana@example.com");
+    java.util.Optional<User> found = repo.findByEmail("ana@example.com");
     assertThat(found).isPresent();
     assertThat(found.get().getName()).isEqualTo("Ana");
   }

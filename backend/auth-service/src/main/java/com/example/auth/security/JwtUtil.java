@@ -20,4 +20,18 @@ public class JwtUtil {
       .withExpiresAt(Date.from(now.plusSeconds(expiresSeconds)))
       .sign(alg);
   }
+
+  public static String generateToken(String subject, String role, String secret, long expiresSeconds){
+    Algorithm alg = Algorithm.HMAC256(secret);
+    Instant now = Instant.now();
+    String jti = UUID.randomUUID().toString();
+    return JWT.create()
+      .withSubject(subject)
+      .withJWTId(jti)
+      .withClaim("typ","access")
+      .withClaim("role", role)
+      .withIssuedAt(Date.from(now))
+      .withExpiresAt(Date.from(now.plusSeconds(expiresSeconds)))
+      .sign(alg);
+  }
 }

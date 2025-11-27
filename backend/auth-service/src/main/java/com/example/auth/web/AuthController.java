@@ -58,7 +58,8 @@ public class AuthController {
         return ResponseEntity.status(401).body(Map.of("error","invalid credentials"));
       }
     }
-    String token = JwtUtil.generateToken(req.email, secret, expiresSeconds);
+    String role = (req.email != null && req.email.toLowerCase().startsWith("admin@")) ? "admin" : "user";
+    String token = JwtUtil.generateToken(req.email, role, secret, expiresSeconds);
     return ResponseEntity.ok(Map.of("token", token));
   }
 } 

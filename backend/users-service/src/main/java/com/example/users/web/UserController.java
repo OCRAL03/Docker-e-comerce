@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import java.net.URI;
 import java.util.List;
@@ -30,7 +33,7 @@ public class UserController {
       return ResponseEntity.badRequest().body("{\"error\":\"email already exists\"}");
     }
     User saved = repo.save(body);
-    var ev = new com.fasterxml.jackson.databind.node.ObjectNode(new com.fasterxml.jackson.databind.node.JsonNodeFactory(false));
+    ObjectNode ev = new ObjectNode(new JsonNodeFactory(false));
     ev.put("event","user.created");
     ev.put("userId", saved.getId());
     ev.put("email", saved.getEmail());
@@ -45,7 +48,7 @@ public class UserController {
     List<User> users = null;
     String dataSource = "database";
     boolean cacheError = false;
-    var cache = cacheManager.getCache("users");
+    Cache cache = cacheManager.getCache("users");
     try {
       if (cache != null) {
         users = cache.get("list", List.class);

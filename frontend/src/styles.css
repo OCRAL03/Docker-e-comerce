@@ -19,7 +19,7 @@ ul{ list-style:none; padding:0; margin:0 }
 li{ display:flex; gap: var(--space); align-items:center; padding:8px 0; border-bottom:1px solid #1f2937 }
 .toast-wrap{ position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
 .toast{ background:#111827; border:1px solid #1f2937; color:#e5e7eb; padding:10px 14px; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.2) }
-.toast.success{ border-color:#10b981 }
+.toast.success{ border-color:#10b981; background:#ecfdf5; color:#065f46 }
 .toast.error{ border-color:#ef4444 }
 .modal-backdrop{ position: fixed; inset:0; background: rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center }
 .modal{ background:#111827; border:1px solid #1f2937; border-radius:10px; padding:16px; width: min(420px, 90vw); }

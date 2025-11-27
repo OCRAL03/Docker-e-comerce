@@ -49,7 +49,12 @@ public class TaskController {
     event.put("taskId", saved.getId());
     event.put("userId", saved.getUserId());
     event.put("title", saved.getTitle());
-    rabbitTemplate.convertAndSend("tasks-exchange","task.created", new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(event));
+    try {
+      String payload = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(event);
+      rabbitTemplate.convertAndSend("tasks-exchange","task.created", payload);
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      // ignore publish error
+    }
     return ResponseEntity.created(URI.create("/tasks/" + saved.getId())).body(new TaskDto(saved.getId(), saved.getTitle(), saved.getUserId(), saved.isCompleted()));
   }
 
@@ -109,7 +114,12 @@ public class TaskController {
       ev.put("taskId", saved.getId());
       ev.put("userId", saved.getUserId());
       ev.put("title", saved.getTitle());
-      rabbitTemplate.convertAndSend("tasks-exchange","task.completed", new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(ev));
+      try {
+        String payload = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(ev);
+        rabbitTemplate.convertAndSend("tasks-exchange","task.completed", payload);
+      } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+        // ignore publish error
+      }
     }
     return ResponseEntity.ok(saved);
   }
