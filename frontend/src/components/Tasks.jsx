@@ -4,7 +4,7 @@ import { useToast } from '../lib/toast.jsx';
 import Modal from './Modal.jsx';
 import { Zap, Mail } from 'lucide-react';
 
-export default function Tasks({ users, tasks, onChanged, source }){
+export default function Tasks({ users, tasks, onChanged, source, loadingList=false }){
   const [title, setTitle] = useState('');
   const [filter, setFilter] = useState('all');
   const [editingId, setEditingId] = useState('');
@@ -82,6 +82,13 @@ export default function Tasks({ users, tasks, onChanged, source }){
         <button className={filter==='pending'?'active':''} onClick={() => setFilter('pending')}>Pendientes</button>
         <button className={filter==='completed'?'active':''} onClick={() => setFilter('completed')}>Completadas</button>
       </div>
+      {loadingList ? (
+        <div className="animate-pulse space-y-2 mt-2">
+          <div className="h-3 bg-slate-200 rounded" />
+          <div className="h-3 bg-slate-200 rounded" />
+          <div className="h-3 bg-slate-200 rounded" />
+        </div>
+      ) : (
       <ul>
         {filtered.map(t => {
           const u = users.find(x => (x.id || x._id) === t.userId);
@@ -107,6 +114,7 @@ export default function Tasks({ users, tasks, onChanged, source }){
           );
         })}
       </ul>
+      )}
       <Modal open={confirm.open} text="¿Eliminar esta tarea?" onCancel={() => setConfirm({ open:false, task:null })} onConfirm={doRemove} />
     </div>
   );

@@ -34,6 +34,14 @@ spring:
             - Path=/tasks/**
           filters:
             - CircuitBreaker=name=tasksCB,fallbackUri=forward:/fallback/tasks
+        - id: orders
+          uri: http://orders-service:8084
+          predicates:
+            - Path=/orders/**
+        - id: products
+          uri: http://products-service:8080
+          predicates:
+            - Path=/products/**
       globalcors:
         corsConfigurations:
           "[/**]":

@@ -51,7 +51,9 @@ public class UserController {
     Cache cache = cacheManager.getCache("users");
     try {
       if (cache != null) {
-        users = cache.get("list", List.class);
+        @SuppressWarnings("unchecked")
+        List<User> cached = (List<User>) cache.get("list", List.class);
+        users = cached;
         if (users != null) dataSource = "redis";
       }
     } catch (Exception e) {

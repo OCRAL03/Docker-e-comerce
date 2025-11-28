@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { post } from '../lib/api';
 import { useToast } from '../lib/toast.jsx';
 
-export default function Users({ users, onChanged, source }){
+export default function Users({ users, onChanged, source, loadingList=false }){
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,15 @@ export default function Users({ users, onChanged, source }){
           </span>
         )}
       </div>
-      <ul>{users.map(u => <li key={u.id || u._id}>{u.name} - {u.email}</li>)}</ul>
+      {loadingList ? (
+        <div className="animate-pulse space-y-2 mt-2">
+          <div className="h-3 bg-slate-200 rounded" />
+          <div className="h-3 bg-slate-200 rounded" />
+          <div className="h-3 bg-slate-200 rounded" />
+        </div>
+      ) : (
+        <ul>{users.map(u => <li key={u.id || u._id}>{u.name} - {u.email}</li>)}</ul>
+      )}
       <div className="row">
         <input placeholder="Nombre" value={name} onChange={e => setName(e.target.value)} />
         <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />

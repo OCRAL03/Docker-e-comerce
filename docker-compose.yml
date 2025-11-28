@@ -76,6 +76,10 @@ services:
         condition: service_started
       tasks-service:
         condition: service_started
+      products-service:
+        condition: service_started
+      orders-service:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
       interval: 10s
@@ -126,6 +130,65 @@ services:
       - "8082:8082"
     networks: [appnet]
 
+  products-service:
+    build:
+      context: ./backend/products-service
+    ports:
+      - "8083:8080"
+    networks: [appnet]
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-products:27017/products_db
+    depends_on:
+      mongo-products:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8083/products"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-orders:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo_orders_data:/data/db
+    networks: [appnet]
+
+  orders-service:
+    build:
+      context: ./backend/orders-service
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-orders:27017/ordersdb
+    depends_on:
+      mongo-orders:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8084/orders"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8084:8084"
+    networks: [appnet]
+
+  mongo-products:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "27020:27017"
+    volumes:
+      - mongo_products_data:/data/db
+    networks: [appnet]
   rabbitmq:
     image: rabbitmq:3-management
     healthcheck:
@@ -189,3 +252,5 @@ networks:
 volumes:
   mongo_users_data:
   mongo_tasks_data:
+  mongo_orders_data:
+  mongo_products_data:

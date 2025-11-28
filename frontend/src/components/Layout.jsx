@@ -2,9 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import ArchitectureStatus from './ArchitectureStatus.jsx';
 import { isAdminFromToken, decodeJwt } from '../lib/auth.js';
-import { LayoutDashboard, Users, CheckSquare, Activity, Mail } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Activity, Mail, ShoppingCart, Package } from 'lucide-react';
 
-export default function Layout({ children, headers }){
+export default function Layout({ children, headers, cartCount=0 }){
   const token = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage.getItem('token') || '' : '';
   const isAdmin = isAdminFromToken(token);
   return (
@@ -39,6 +39,9 @@ export default function Layout({ children, headers }){
             })()}
           </div>
           <nav className="flex flex-col gap-2">
+            <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/catalog"><CheckSquare size={18} /> Catálogo</Link>
+            <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/cart"><ShoppingCart size={18} /> Carrito {cartCount>0 && <span className="ml-auto text-xs px-2 py-0.5 rounded bg-indigo-600 text-white">{cartCount}</span>}</Link>
+            <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/orders"><Package size={18} /> Mis Órdenes</Link>
             <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/users"><Users size={18} /> Usuarios</Link>
             <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/tasks"><CheckSquare size={18} /> Tareas</Link>
             <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/monitor"><Activity size={18} /> Monitor Sistema</Link>
@@ -46,6 +49,7 @@ export default function Layout({ children, headers }){
               <>
                 <a className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" href="http://localhost:8025" target="_blank" rel="noreferrer"><Mail size={18} /> MailHog</a>
                 <a className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" href="http://localhost:3000" target="_blank" rel="noreferrer"><Activity size={18} /> Grafana</a>
+                <Link className="px-3 py-2 rounded hover:bg-slate-100 flex items-center gap-2" to="/admin/orders"><Activity size={18} /> Órdenes (Admin)</Link>
               </>
             )}
           </nav>

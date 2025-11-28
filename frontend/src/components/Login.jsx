@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { login } from '../lib/api';
+import { useToast } from '../lib/toast.jsx';
 import { LayoutDashboard, Lock, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -8,17 +9,19 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { add } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       const emailInput = username.includes('@') ? username : `${username}@ops.local`;
       const r = await login(emailInput, password);
-      if (r && r.token) onLogin(r.token); else setError('Credenciales incorrectas (Prueba: admin / admin)');
+      if (r && r.token) { add('Bienvenido', 'success'); onLogin(r.token); } else { setError('Credenciales incorrectas (Prueba: admin / admin)'); }
     } catch (err) {
       setError('Credenciales incorrectas (Prueba: admin / admin)');
-    }
+    } finally { setLoading(false); }
   };
 
   return (
@@ -70,7 +73,7 @@ export default function Login({ onLogin }) {
             className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-all duration-200 shadow-lg shadow-slate-900/20 active:scale-[0.98]"
             disabled={loading}
           >
-            Iniciar Sesión
+            {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
 
