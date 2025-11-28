@@ -1,4 +1,6 @@
 **/src/main/resources/**
+.idea/
+recursos/
 .DS_Store
 node_modules/
 dist/
